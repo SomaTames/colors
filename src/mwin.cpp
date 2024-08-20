@@ -60,42 +60,39 @@ void mwin::updateviewandscene() {
     m_view->viewport()->update();
 }
 
-void mwin::drawellips(int l, int index) {
+void mwin::drawellips(int& l, int index) {
     updateviewandscene();
-    const short* height = new short(90);
-    const short* width = new short(90);
-    short* x = new short(25);
-    short* y = new short(25);
+    short height = 90;
+    short width = 90;
+    short x = 25;
+    short y = 25;
     short step = 0;
     for (int i = index; i < l; ++i) {
-        if (o_image->getcolorlist()[i].redF() == 1 && o_image->getcolorlist()[i].greenF() == 1 && o_image->getcolorlist()[i].blueF() == 1) {
-            m_scene->addEllipse(*x, *y, *width, *height, QPen(Qt::black, 5), Qt::NoBrush);
+        auto color = o_image->getcolorlist()[i];
+        if (color.redF() == 1 && color.greenF() == 1 && color.blueF() == 1) {
+            m_scene->addEllipse(x, y, width, height, QPen(Qt::black, 5), Qt::NoBrush);
         }
-        m_scene->addEllipse(*x, *y, *width, *height, QPen(o_image->getcolorlist()[i]), QBrush(o_image->getcolorlist()[i]));
-        *x += 120;
+        m_scene->addEllipse(x, y, width, height, QPen(color), QBrush(color));
+        x += 120;
         ++step;
         if (step == 4) {
-            *y += 120;
-            *x = 25;
+            y += 120;
+            x = 25;
             step = 0;
         }
     }
-    delete height;
-    delete width;
-    delete x;
-    delete y;
 }
 
 void mwin::firstdraw() {
     updateviewandscene();
-    int cl = o_image->getcolorlist().length();
+    int cl = o_image->getcolorlist().size();
     if (cl > 20) {
         b_next->show();
         f_index = 0;
         lists.clear();
-        int t = cl / 20;
+        short t = cl / 20;
         for (int i = 0; i < t + 1; ++i) {
-            lists.append(20 * i);
+            lists.push_back(20 * i);
         }
         drawellips(cl, lists[f_index]);
     } else {
@@ -112,13 +109,14 @@ void mwin::firstdraw() {
 
 void mwin::onnextclick() {
     f_index += 1;
-    if (f_index == lists.length() - 1) {
+    if (f_index == lists.size() - 1) {
         b_next->hide();
     }
     if (f_index > 0) {
         b_back->show();
     }
-    drawellips(o_image->getcolorlist().length(), lists[f_index]);
+    int cl = o_image->getcolorlist().size();
+    drawellips(cl, lists[f_index]);
 }
 
 void mwin::onbackclick() {
@@ -130,36 +128,40 @@ void mwin::onbackclick() {
     if (f_index > 0) {
         b_next->show();
     }
-    drawellips(o_image->getcolorlist().length(), lists[f_index]);
+    int cl = o_image->getcolorlist().size();
+    drawellips(cl, lists[f_index]);
 }
 
 void mwin::onsaveclick() {
-    if (!m_scene->items().isEmpty() && o_image->getcolorlist().length() <= 20) {
+    int cl = o_image->getcolorlist().size();
+    if (!m_scene->items().isEmpty() && cl <= 20) {
         QImage* image = new QImage(500, 600, QImage::Format_ARGB32);
         image->fill(Qt::white);
         QPainter* m_painter = new QPainter(image);
+        m_painter->setRenderHint(QPainter::Antialiasing, true);
         m_scene->render(m_painter, QRect(0, 0, 500, 600));
-        QString puth = QFileDialog::getExistingDirectory(this, "Choose a place to save", "");
-        puth += "/color_reff.jpg";
-        image->save(puth);
+        QString* puth = new QString(QFileDialog::getExistingDirectory(this, "Choose a place to save", ""));
+        *puth += "/color_reff.jpg";
+        image->save(*puth);
         m_painter->end();
         delete image;
         delete m_painter;
-    } else if (!m_scene->items().isEmpty() && o_image->getcolorlist().length() > 20) {
+        delete puth;
+    } else if (!m_scene->items().isEmpty() && cl > 20) {
         f_index = 0;
-        drawellips(o_image->getcolorlist().length(), lists[f_index]);
+        drawellips(cl, lists[f_index]);
         QImage* image = new QImage(500, 600, QImage::Format_ARGB32);
         QPainter* m_painter = new QPainter(image);
-        QString puth;
-        int ll = lists.length();
+        QString* puth = new QString();
+        int ll = lists.size();
         for (int i = 0; i < ll; ++i) {
             image->fill(Qt::white);
             m_scene->render(m_painter, QRect(0, 0, 500, 600));
-            if (puth.isEmpty()) {
-                puth = QFileDialog::getExistingDirectory(this, "Choose a place to save", "");
-                puth += "/color_reff%1.jpg";
+            if (puth->isEmpty()) {
+                *puth = QFileDialog::getExistingDirectory(this, "Choose a place to save", "");
+                *puth += "/color_reff%1.jpg";
             }
-            image->save(puth.arg(i+1));
+            image->save(puth->arg(i+1));
             if (!b_next->isHidden()) {
                 b_next->click();
             }
@@ -167,6 +169,7 @@ void mwin::onsaveclick() {
         m_painter->end();
         delete image;
         delete m_painter;
+        delete puth;
     }
 }
 

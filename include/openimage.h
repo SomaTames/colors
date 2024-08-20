@@ -3,8 +3,9 @@
 
 #include <QFileDialog>
 #include <QImage>
-#include <QList>
+#include <vector>
 #include <QRgb>
+#include <thread>
 #include <QDebug>
 
 /**
@@ -19,7 +20,7 @@ public:
     * @brief Метод для получения массива уникальных цветов.
     * @return Массив цветов.
     */
-    QList<QColor>& getcolorlist();
+    std::vector<QColor>& getcolorlist();
     ~openimage();
 
 private:
@@ -27,7 +28,7 @@ private:
     /**
     * @brief Массив, содержащий уникальные цвета.
     */
-    QList<QColor> colorlist;
+    std::vector<QColor> colorlist;
     /**
     * @brief Метод создания массива уникальных цветов.
     */

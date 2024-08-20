@@ -26,11 +26,11 @@ private:
     */
     void updateviewandscene();
     /**
-    * @brief Метод для рисования кругов цветных кругов на сцене.
+    * @brief Метод для рисования цветных кругов на сцене.
     * @param l_length Размер массива цветовю.
     * @param index Индекс в массиве, с которого производится отрисовка кругов.
     */
-    void drawellips(int l_length, int index = 0);
+    void drawellips(int& l_length, int index = 0);
     openimage* o_image = nullptr;
     QHBoxLayout* h_lay = nullptr;
     QVBoxLayout* v_lay = nullptr;
@@ -44,7 +44,7 @@ private:
     * @brief Массив для определения количества кругов на сцене.
     * @note Нужен только в случае, если размер массива цветов больше 20.
     */
-    QList<int> lists;
+    std::vector<int> lists;
     /**
     * @brief Индекс для массива lists.
     */

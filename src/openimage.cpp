@@ -13,7 +13,9 @@ void openimage::initopenimage() {
     if (!m_image) {
         return;
     }
-    takeimagecorols();
+
+    std::thread m_t(&openimage::takeimagecorols, this);
+    m_t.detach();
 }
 
 bool openimage::arecolorssimilar(const QColor &color1, const QColor &color2, qreal tolerance) {
@@ -27,21 +29,21 @@ bool openimage::arecolorssimilar(const QColor &color1, const QColor &color2, qre
 
 void openimage::takeimagecorols() {
     colorlist.clear();
-    const short* height = new short(m_image->height());
-    const short* width = new short(m_image->width());
-    for (int y = 0; y < *height; ++y) {
+    short height = m_image->height();
+    short width = m_image->width();
+    for (int y = 0; y < height; ++y) {
         const QRgb* line = reinterpret_cast<QRgb*>(m_image->scanLine(y));
-        for (int x = 0; x < *width; ++x) {
+        for (int x = 0; x < width; ++x) {
             QRgb pixel = line[x];
             QColor color(pixel);
-            colorlist.append(color);
+            colorlist.push_back(color);
         }
     }
 
-    delete height;
-    delete width;
+    m_image = nullptr;
+    delete m_image;
 
-    QList<QColor>* uniccolor = new QList<QColor>;
+    std::vector<QColor>* uniccolor = new std::vector<QColor>;
     for (const QColor &color : qAsConst(colorlist)) {
         bool isUnique = true;
         for (const QColor &uniqueColor : qAsConst(*uniccolor)) {
@@ -51,7 +53,7 @@ void openimage::takeimagecorols() {
             }
         }
         if (isUnique) {
-            uniccolor->append(color);
+            uniccolor->push_back(color);
         }
     }
 
@@ -67,7 +69,7 @@ void openimage::takeimagecorols() {
     }
 }
 
-QList<QColor> &openimage::getcolorlist() {
+std::vector<QColor> &openimage::getcolorlist() {
     return colorlist;
 }
 
